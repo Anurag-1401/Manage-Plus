@@ -19,14 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-// ✅ Import Supabase directly here
 import { supabase } from "@/lib/supabaseClient";
 
 interface EmployeeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employee: Employee | null;
-  onSave: () => void; // we update this
+  onSave: () => void;
 }
 
 const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
@@ -35,71 +34,107 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
   employee,
   onSave,
 }) => {
-  const [formData, setFormData] = useState<Partial<Employee>>({
-    name: '',
-    mobile: '',
-    aadhar: '',
-    pan: '',
-    address: '',
-    type: 'FIXED',
-    salary: 0,
-    dailyRate: 0,
-  });
+  const [formData, setFormData] = useState({
+  employee_id: null,
+  name: '',
+  mobile: '',
+  aadhar: '',
+  pan: '',
+  address: '',
+  type: 'FIXED',
+  salary: 0,
+  dailyRate: 0,
+  supervisorId: '',        // added
+  joinDate: '',            // added
+  status: 'active',        // added
+  company_id: '',           // added
+});
+
 
   useEffect(() => {
-    if (employee) {
-      setFormData(employee);
-    } else {
-      setFormData({
-        name: '',
-        mobile: '',
-        aadhar: '',
-        pan: '',
-        address: '',
-        type: 'FIXED',
-        salary: 0,
-        dailyRate: 0,
-      });
-    }
-  }, [employee, open]);
+  if (employee) {
+    setFormData({
+      employee_id: employee.employee_id,
+      name: employee.name,
+      mobile: employee.mobile || "",
+      address: employee.address || "",
+      aadhar: employee.aadhar || "",
+      pan: employee.pan || "",
+      type: employee.type,
+      salary: employee.salary || 0,
+      dailyRate: employee.dailyRate || 0,
+      supervisorId: employee.supervisorId || "",
+      joinDate: employee.joinDate,
+      status: employee.status,
+      company_id: employee.companyId,
+    });
+  } else {
+    setFormData({
+      employee_id: null,
+      name: '',
+      mobile: '',
+      aadhar: '',
+      pan: '',
+      address: '',
+      type: 'FIXED',
+      salary: 0,
+      dailyRate: 0,
+      supervisorId: '',
+      joinDate: '',
+      status: 'active',
+      company_id: '',
+    });
+  }
+}, [employee, open]);
 
-  // ✅ Supabase insert/update happens here
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const dataToSave = {
-      ...formData,
-      salary: formData.type === "FIXED" ? formData.salary : null,
-      dailyRate: formData.type === "DAILY" ? formData.dailyRate : null,
-    };
+    const payload = {
+  full_name: formData.name,
+  aadhar: formData.aadhar,
+  pan: formData.pan,
+  employment_type: formData.type,
+  monthly_salary: formData.type === "FIXED" ? formData.salary : null,
+  daily_rate: formData.type === "DAILY" ? formData.dailyRate : null,
+  supervisor_id: formData.supervisorId,
+  join_date: formData.joinDate,
+  status: formData.status,
+  company_id: formData.company_id,
+  mobile: formData.mobile,
+  address: formData.address,
+};
+
 
     try {
-      if (employee?.id) {
-        // ✅ Update employee
+      if (employee?.employee_id) {
+        // UPDATE
         const { error } = await supabase
           .from("employee")
-          .update(dataToSave)
-          .eq("id", employee.id);
+          .update(payload)
+          .eq("employee_id", employee.employee_id);
 
         if (error) throw error;
+
       } else {
-        // ✅ Insert employee
+        // INSERT
         const { error } = await supabase
           .from("employee")
-          .insert([dataToSave]);
+          .insert([payload]);
 
         if (error) throw error;
       }
 
-      onSave();            // refresh parent list
-      onOpenChange(false); // close dialog
+      onSave();
+      onOpenChange(false);
 
     } catch (err: any) {
       alert("Supabase Error: " + err.message);
     }
   };
 
-  const handleChange = (field: keyof Employee, value: any) => {
+  const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -115,11 +150,10 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            
+
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name *</Label>
+              <Label>Full Name *</Label>
               <Input
-                id="name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 required
@@ -127,9 +161,8 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mobile">Mobile *</Label>
+              <Label>Mobile *</Label>
               <Input
-                id="mobile"
                 value={formData.mobile}
                 onChange={(e) => handleChange('mobile', e.target.value)}
                 required
@@ -137,39 +170,34 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="aadhar">Aadhar Number</Label>
+              <Label>Aadhar</Label>
               <Input
-                id="aadhar"
                 value={formData.aadhar}
                 onChange={(e) => handleChange('aadhar', e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pan">PAN Number</Label>
+              <Label>PAN</Label>
               <Input
-                id="pan"
                 value={formData.pan}
                 onChange={(e) => handleChange('pan', e.target.value)}
               />
             </div>
 
             <div className="space-y-2 col-span-2">
-              <Label htmlFor="address">Address</Label>
+              <Label>Address</Label>
               <Input
-                id="address"
                 value={formData.address}
                 onChange={(e) => handleChange('address', e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Employment Type *</Label>
+              <Label>Employment Type *</Label>
               <Select
                 value={formData.type}
-                onValueChange={(value: EmployeeType) =>
-                  handleChange('type', value)
-                }
+                onValueChange={(value: any) => handleChange('type', value)}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -181,27 +209,24 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
 
             {formData.type === 'FIXED' ? (
               <div className="space-y-2">
-                <Label htmlFor="salary">Monthly Salary (₹) *</Label>
+                <Label>Monthly Salary *</Label>
                 <Input
-                  id="salary"
                   type="number"
                   value={formData.salary}
-                  onChange={(e) => handleChange('salary', parseInt(e.target.value))}
-                  required
+                  onChange={(e) => handleChange('salary', parseFloat(e.target.value))}
                 />
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="dailyRate">Daily Rate (₹) *</Label>
+                <Label>Daily Rate *</Label>
                 <Input
-                  id="dailyRate"
                   type="number"
                   value={formData.dailyRate}
-                  onChange={(e) => handleChange('dailyRate', parseInt(e.target.value))}
-                  required
+                  onChange={(e) => handleChange('dailyRate', parseFloat(e.target.value))}
                 />
               </div>
             )}
+
           </div>
 
           <DialogFooter>
@@ -212,6 +237,7 @@ const EmployeeDialog: React.FC<EmployeeDialogProps> = ({
               {employee ? 'Update' : 'Add'} Employee
             </Button>
           </DialogFooter>
+
         </form>
       </DialogContent>
     </Dialog>

@@ -36,6 +36,7 @@ export interface Supervisor {
 }
 
 export interface Employee {
+  employee_id:string;
   id: string;
   name: string;
   mobile: string;
