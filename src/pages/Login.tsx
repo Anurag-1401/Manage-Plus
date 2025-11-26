@@ -7,38 +7,110 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import GoogleSignInButton from "@/components/ui/google-sign-in-button";
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from "@/lib/supabaseClient";
+
 
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login,setCompany } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+ // 🔥 LOGIN PAGE (ALL INSERT LOGIC HERE)
 
-    try {
-      await login(email, password);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const emailClean = email.trim().toLowerCase();
+    const passwordClean = password;
+
+    // 1️⃣ LOGIN FIRST
+    const loggedUser = await login(emailClean, passwordClean);
+
+    // 2️⃣ CHECK EMAIL VERIFIED
+    if (!loggedUser.email_confirmed_at) {
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+        title: "Verify your email",
+        description: "Please verify your email before logging in."
       });
-      navigate('/dashboard');
-    } catch (error) {
-      toast({
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'Invalid credentials',
-        variant: 'destructive',
-      });
-    } finally {
       setLoading(false);
+      return;
     }
-  };
+
+    // 3️⃣ CHECK IF OWNER ALREADY EXISTS
+    const { data: existingOwner } = await supabase
+      .from("owner")
+      .select("*")
+      .eq("owner_id", loggedUser.id)
+      .maybeSingle();
+
+    if (existingOwner) {
+      toast({
+        title: "Welcome back!",
+        description: "Login successful!",
+      });
+      navigate("/dashboard");
+      return;
+    }
+
+    // 4️⃣ FIRST LOGIN → INSERT COMPANY + OWNER
+    const meta = loggedUser.user_metadata;
+
+    // Insert Company
+    const { data: company, error: compErr } = await supabase
+      .from("company")
+      .insert({
+        company_name: meta.companyName,
+        gst_no: meta.gstNo || null,
+        address: meta.address || null,
+      })
+      .select()
+      .single();
+
+    if (compErr) throw compErr;
+
+
+
+    // Insert Owner
+    const { error: ownerErr } = await supabase
+      .from("owner")
+      .insert({
+        owner_id: loggedUser.id,
+        company_id: company.company_id,
+        full_name: meta.fullName,
+        email: loggedUser.email,
+        phone: meta.phone || null,
+      });
+
+    if (ownerErr) throw ownerErr;
+
+    setCompany(company);
+
+    toast({
+      title: "Registration Completed",
+      description: "Your company and owner profile has been created!",
+    });
+
+    navigate("/dashboard");
+
+  } catch (error) {
+    toast({
+      title: "Login failed",
+      description: error instanceof Error ? error.message : "Invalid credentials",
+      variant: "destructive",
+    });
+  }
+
+  setLoading(false);
+};
+
+
 
    const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);

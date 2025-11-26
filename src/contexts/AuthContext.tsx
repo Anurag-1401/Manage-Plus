@@ -1,162 +1,292 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+// import React, { createContext, useEffect, useState, ReactNode } from "react";
+// import { supabase } from "@/lib/supabaseClient";
+// import { useNavigate } from "react-router-dom";
 
-// ============================================================
-// TYPES
-// ============================================================
+// interface SignupData {
+//   fullName: string;
+//   phone?: string;
+//   companyName: string;
+//   gstNo?: string;
+//   address?: string;
+// }
+
+// interface AuthContextType {
+//   user: any;
+//   company: any;
+//   loading: boolean;
+//   signup: (email: string, password: string, data: SignupData) => Promise<void>;
+//   login: (email: string, password: string) => Promise<void>;
+//   logout: () => Promise<void>;
+// }
+
+// export const AuthContext = createContext<AuthContextType | null>(null);
+
+// export const AuthProvider = ({ children }: { children: ReactNode }) => {
+//   const [user, setUser] = useState<any>(null);
+//   const [company, setCompany] = useState<any>(null);
+//   const [loading, setLoading] = useState(true);
+
+//   const navigate = useNavigate();
+
+//   // Restore session on app reload
+//   useEffect(() => {
+//     const init = async () => {
+//       const { data: { session } } = await supabase.auth.getSession();
+//       setUser(session?.user || null);
+//       setLoading(false);
+//     };
+
+//     init();
+
+//     const { data: listener } = supabase.auth.onAuthStateChange(
+//       (_, session) => setUser(session?.user || null)
+//     );
+
+//     return () => listener?.subscription.unsubscribe();
+//   }, []);
+
+//   // -------------------------
+//   // SIGNUP
+//   // -------------------------
+//   const signup = async (email: string, password: string, data: SignupData) => {
+//     setLoading(true);
+
+//     const { error } = await supabase.auth.signUp({
+//       email: email.trim().toLowerCase(),
+//       password,
+//     });
+
+//     if (error) {
+//       setLoading(false);
+//       throw error;
+//     }
+
+//     alert("Signup successful! Please verify your email.");
+//     setLoading(false);
+//     navigate("/login");
+//   };
+
+//   // -------------------------
+//   // LOGIN (INSERT OWNER + COMPANY AFTER EMAIL VERIFIED)
+//   // -------------------------
+//   const login = async (email: string, password: string) => {
+//     setLoading(true);
+
+//     const { data, error } = await supabase.auth.signInWithPassword({
+//       email: email.trim().toLowerCase(),
+//       password,
+//     });
+
+//     if (error) {
+//       setLoading(false);
+//       throw error;
+//     }
+
+//     const loggedUser = data.user;
+//     setUser(loggedUser);
+
+//     // ❗ Email NOT verified → Stop here
+//     if (!loggedUser.email_confirmed_at) {
+//       alert("Please verify your email first!");
+//       setLoading(false);
+//       return;
+//     }
+
+//     // ❗ Check if owner already exists (avoid duplicate insertion)
+//     const { data: existingOwner } = await supabase
+//       .from("owner")
+//       .select("*")
+//       .eq("owner_id", loggedUser.id)
+//       .maybeSingle();
+
+//     // If owner exists → Just redirect
+//     if (existingOwner) {
+//       setLoading(false);
+//       navigate("/dashboard");
+//       return;
+//     }
+
+//     // 👇 Owner does NOT exist → FIRST LOGIN AFTER VERIFICATION
+//     try {
+//       // Insert Company
+//       const { data: comp, error: compErr } = await supabase
+//         .from("company")
+//         .insert({
+//           company_name: data.user.user_metadata.companyName,
+//           gst_no: data.user.user_metadata.gstNo || null,
+//           address: data.user.user_metadata.address || null,
+//         })
+//         .select()
+//         .single();
+
+//       if (compErr) throw compErr;
+
+//       // Insert Owner
+//       const { error: ownerErr } = await supabase
+//         .from("owner")
+//         .insert({
+//           owner_id: loggedUser.id,
+//           company_id: comp.company_id,
+//           full_name: data.user.user_metadata.fullName,
+//           email: loggedUser.email,
+//           phone: data.user.user_metadata.phone || null,
+//         });
+
+//       if (ownerErr) throw ownerErr;
+
+//       // Update metadata
+//       await supabase.auth.updateUser({
+//         data: {
+//           role: "owner",
+//           company_id: comp.company_id,
+//         },
+//       });
+
+//       setCompany(comp);
+//       alert("Registration completed!");
+//       navigate("/dashboard");
+
+//     } catch (e: any) {
+//       alert(e.message);
+//     }
+
+//     setLoading(false);
+//   };
+
+//   // -------------------------
+//   // LOGOUT
+//   // -------------------------
+//   const logout = async () => {
+//     setLoading(true);
+//     await supabase.auth.signOut();
+//     setUser(null);
+//     setCompany(null);
+//     setLoading(false);
+//   };
+
+//   return (
+//     <AuthContext.Provider
+//       value={{
+//         user,
+//         company,
+//         loading,
+//         signup,
+//         login,
+//         logout,
+//       }}
+//     >
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
+
+// 🔥 CLEAN AUTH CONTEXT (NO OWNER/COMPANY INSERT HERE)
+
+import React, { createContext, useEffect, useState, ReactNode } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 interface SignupData {
   fullName: string;
+  phone?: string;
   companyName: string;
   gstNo?: string;
   address?: string;
-  role: "owner";
 }
 
 interface AuthContextType {
   user: any;
+  company: any;
   loading: boolean;
-  signup: (
-    email: string,
-    password: string,
-    data: SignupData
-  ) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
+  signup: (...args: any) => Promise<void>;
+  login: (...args: any) => Promise<any>;
   logout: () => Promise<void>;
+  setCompany: (data: any) => void;   // <-- ADD THIS
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-
-// ============================================================
-// PROVIDER COMPONENT
-// ============================================================
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const [company, setCompany] = useState<any>(null);
 
-  // Keep session alive on refresh
+
+  // Restore session on refresh
   useEffect(() => {
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setLoading(false);
     };
 
-    getSession();
+    init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_, session) => {
-        setUser(session?.user || null);
-      }
+      (_, session) => setUser(session?.user || null)
     );
 
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
+    return () => listener?.subscription.unsubscribe();
   }, []);
 
-  // ============================================================
-  // SIGNUP (OWNER ONLY)
-  // ============================================================
-  const signup = async (
-    email: string,
-    password: string,
-    data: SignupData
-  ) => {
-    // 1️⃣ Create Supabase Auth User
-    const {
-      data: { user },
-      error: signupError,
-    } = await supabase.auth.signUp({
-      email,
+  // -------------------------
+  // SIGNUP ONLY (NO INSERT)
+  // -------------------------
+  const signup = async (email: string, password: string, data: SignupData) => {
+    setLoading(true);
+
+    const { error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
       password,
+      options: { data }
     });
 
-    if (signupError) throw signupError;
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
 
-    if (!user) throw new Error("Signup failed — no user returned.");
-
-    const ownerId = user.id;
-
-    // 2️⃣ Insert Company
-    const { data: companyRow, error: companyError } = await supabase
-      .from("company")
-      .insert([
-        {
-          company_name: data.companyName,
-          gst_no: data.gstNo || null,
-          address: data.address || null,
-        },
-      ])
-      .select()
-      .single();
-
-    if (companyError) throw companyError;
-
-    const companyId = companyRow.company_id;
-
-    // 3️⃣ Insert Owner row
-    const { error: ownerInsertError } = await supabase
-      .from("owner")
-      .insert([
-        {
-          owner_id: ownerId,
-          company_id: companyId,
-          full_name: data.fullName,
-        },
-      ]);
-
-    if (ownerInsertError) throw ownerInsertError;
-
-    // 4️⃣ Update user metadata (VERY IMPORTANT for RLS)
-    const { error: metadataError } = await supabase.auth.updateUser({
-      data: {
-        role: "owner",
-        company_id: companyId,
-      },
-    });
-
-    if (metadataError) throw metadataError;
+    alert("Please verify your email before logging in.");
+    setLoading(false);
+    navigate("/login");
   };
 
-  // ============================================================
-  // LOGIN
-  // ============================================================
+  // -------------------------
+  // LOGIN ONLY (NO INSERT)
+  // -------------------------
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
+
+    setUser(data.user);
+    setLoading(false);
+    return data.user; // return user info to Login page logic
   };
 
-  // ============================================================
+  // -------------------------
   // LOGOUT
-  // ============================================================
+  // -------------------------
   const logout = async () => {
+    setLoading(true);
     await supabase.auth.signOut();
+    setUser(null);
+    setLoading(false);
   };
 
-  // ============================================================
-  // FINAL PROVIDER RETURN
-  // ============================================================
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signup,
-        login,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, signup, login, logout,setCompany }}>
       {children}
     </AuthContext.Provider>
   );
 };
-

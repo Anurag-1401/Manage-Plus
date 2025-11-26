@@ -22,32 +22,33 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+  <TooltipProvider>
+    <BrowserRouter>
       <AuthProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/employees" element={<Employees />} />
-              <Route path="/supervisors" element={<Supervisors />} />
-              <Route path="/profile" element={<SupervisorProfile />} />
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/attendance-history" element={<AttendanceHistory />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/admin" element={<Admin />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/employees" element={<Employees />} />
+            <Route path="/supervisors" element={<Supervisors />} />
+            <Route path="/profile" element={<SupervisorProfile />} />
+            <Route path="/attendance" element={<Attendance />} />
+            <Route path="/attendance-history" element={<AttendanceHistory />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<Admin />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </BrowserRouter>
+  </TooltipProvider>
+</QueryClientProvider>
+
 );
 
 export default App;

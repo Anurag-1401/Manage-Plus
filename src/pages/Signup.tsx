@@ -9,10 +9,12 @@ import { useToast } from '@/hooks/use-toast';
 
 const Signup: React.FC = () => {
   const [step, setStep] = useState(1);
+
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
+    phone: '',
     companyName: '',
     gstNo: '',
     address: '',
@@ -23,7 +25,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Next button (Form Step 1 → Step 2)
+  // Step 1 → Step 2
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.fullName && formData.email && formData.password) {
@@ -31,11 +33,9 @@ const Signup: React.FC = () => {
     }
   };
 
-  const handleBack = () => {
-    setStep(1);
-  };
+  const handleBack = () => setStep(1);
 
-  // FINAL SUBMIT (Creates User + Company + Owner)
+  // Final submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -46,6 +46,7 @@ const Signup: React.FC = () => {
         formData.password,
         {
           fullName: formData.fullName,
+          phone: formData.phone,
           companyName: formData.companyName,
           gstNo: formData.gstNo,
           address: formData.address,
@@ -58,7 +59,8 @@ const Signup: React.FC = () => {
         description: 'Your company has been registered successfully.',
       });
 
-      navigate('/login');  // redirect to login
+      navigate('/login');
+
     } catch (error) {
       toast({
         title: 'Signup failed',
@@ -83,12 +85,10 @@ const Signup: React.FC = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>
-            {step === 1 
-              ? 'Enter your details to get started'
-              : 'Tell us about your company'}
+            {step === 1 ? 'Enter your details to get started' : 'Tell us about your company'}
           </CardDescription>
 
-          {/* Progress Bar */}
+          {/* Step progress bar */}
           <div className="flex gap-2 mt-4">
             <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
             <div className={`h-1 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
@@ -96,17 +96,27 @@ const Signup: React.FC = () => {
         </CardHeader>
 
         <CardContent>
-          {/* STEP 1 — User info */}
+          {/* STEP 1 */}
           {step === 1 ? (
             <form onSubmit={handleNext} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input
                   id="fullName"
-                  placeholder="John Doe"
                   value={formData.fullName}
                   onChange={handleChange}
+                  placeholder="John Doe"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="9876543210"
                 />
               </div>
 
@@ -115,9 +125,9 @@ const Signup: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@example.com"
                   value={formData.email}
                   onChange={handleChange}
+                  placeholder="name@example.com"
                   required
                 />
               </div>
@@ -127,28 +137,27 @@ const Signup: React.FC = () => {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
+                  placeholder="••••••••"
                   required
                   minLength={6}
                 />
               </div>
 
-              <Button type="submit" className="w-full">
-                Next
-              </Button>
+              <Button className="w-full" type="submit">Next</Button>
             </form>
           ) : (
-            // STEP 2 — Company info
+            /* STEP 2 */
             <form onSubmit={handleSubmit} className="space-y-4">
+
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name (Required)</Label>
                 <Input
                   id="companyName"
-                  placeholder="Your Company Pvt Ltd."
                   value={formData.companyName}
                   onChange={handleChange}
+                  placeholder="Your Company Pvt Ltd"
                   required
                 />
               </div>
@@ -157,9 +166,9 @@ const Signup: React.FC = () => {
                 <Label htmlFor="gstNo">GST Number (Optional)</Label>
                 <Input
                   id="gstNo"
-                  placeholder="22AAAAA0000A1Z5"
                   value={formData.gstNo}
                   onChange={handleChange}
+                  placeholder="22AAAAA0000A1Z5"
                 />
               </div>
 
@@ -167,18 +176,18 @@ const Signup: React.FC = () => {
                 <Label htmlFor="address">Address (Optional)</Label>
                 <Input
                   id="address"
-                  placeholder="Company Address"
                   value={formData.address}
                   onChange={handleChange}
+                  placeholder="Company Address"
                 />
               </div>
 
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={handleBack} className="w-full">
+                <Button variant="outline" className="w-full" type="button" onClick={handleBack}>
                   Back
                 </Button>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button className="w-full" type="submit" disabled={loading}>
                   {loading ? 'Creating...' : 'Create Account'}
                 </Button>
               </div>
@@ -186,7 +195,7 @@ const Signup: React.FC = () => {
           )}
 
           <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link to="/login" className="text-primary hover:underline">
               Sign in
             </Link>
