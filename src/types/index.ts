@@ -29,12 +29,21 @@ export interface Company {
 }
 
 export interface Supervisor {
-  id: string;
-  fullName: string;
+  supervisor_id: string;
   email: string;
+  fullName: string;
+  role: UserRole;      // keep role for permission checks
   companyId: string;
+
+  // optional identity details
+  aadhar?: string;
+  phone?: string;
+  pan?: string;
+  address?: string;
+
   createdAt: string;
 }
+
 
 export interface Employee {
   id: string;

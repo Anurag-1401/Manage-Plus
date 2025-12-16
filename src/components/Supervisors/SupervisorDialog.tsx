@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User } from '@/types';
+import { Supervisor, User } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 interface SupervisorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (supervisor: Partial<User>) => void;
+  onSave: (supervisor: Partial<Supervisor>) => void;
 }
 
 const SupervisorDialog: React.FC<SupervisorDialogProps> = ({

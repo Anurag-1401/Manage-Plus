@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from '@/lib/supabaseClient';
 
-import { User } from '@/types';
+import { Supervisor, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
@@ -60,7 +60,7 @@ const Supervisors: React.FC = () => {
 
   const { error } = await supabase
     .from('supervisor')
-    .delete()
+    .update({ status: 'DISABLED' })
     .eq('supervisor_id', supervisor_id);
 
   if (error) {
@@ -73,32 +73,47 @@ const Supervisors: React.FC = () => {
 
 
 
-  const handleSave = async (supervisor: Partial<User>) => {
-    console.log(company.company_id)
-  if (!company?.company_id) throw new Error('Company not found');
+ const handleSave = async (supervisor: Partial<Supervisor>) => {
+  if (!company?.company_id) {
+    throw new Error("Company not found");
+  }
+  console.log(supervisor)
+  const session = (await supabase.auth.getSession()).data.session;
+  if (!session) {
+    throw new Error("Not authenticated");
+  }
 
-  const { error } = await supabase
-    .from('supervisor')
-    .insert({
-      full_name: supervisor.fullName,
+  const res = await fetch(
+  "https://cbfkbkywqndothzrydyv.supabase.co/functions/v1/invite-supervisor",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
       email: supervisor.email,
+      full_name: supervisor.fullName,
+      phone: supervisor.phone ?? null,
+      aadhar: supervisor.aadhar ?? null,
+      pan: supervisor.pan ?? null,
+      address: supervisor.address ?? null,
       company_id: company.company_id,
-      phone: supervisor.phone,
-      aadhar: supervisor.aadhar,
-      pan: supervisor.pan,
-      address: supervisor.address,
-    });
+      owner_id: user.id
+    }),
+  }
+);
 
-  if (error) {
-    if (error.code === '23505') {
-      throw new Error('Email already exists');
-    }
-    throw error;
+  if (!res.ok) {
+    const err = await res.json();
+    console.error("Invite error:", err);
+    throw new Error(err.error || "Failed to invite supervisor");
   }
 
   await loadSupervisors();
   setDialogOpen(false);
 };
+
 
 
   if (role !== 'OWNER') {

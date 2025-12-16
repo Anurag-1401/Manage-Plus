@@ -51,7 +51,7 @@ const SupervisorTable: React.FC<SupervisorTableProps> = ({ supervisors, onDelete
       </TableHeader>
       <TableBody>
         {supervisors.map((supervisor) => (
-          <TableRow key={supervisor.id}>
+          <TableRow key={supervisor.supervisor_id}>
             <TableCell className="font-medium">{supervisor.fullName}</TableCell>
             <TableCell>{supervisor.email}</TableCell>
             <TableCell>{supervisor.phone || '-'}</TableCell>
@@ -59,7 +59,7 @@ const SupervisorTable: React.FC<SupervisorTableProps> = ({ supervisors, onDelete
             <TableCell className="max-w-[200px] truncate">{supervisor.address || '-'}</TableCell>
             <TableCell>{new Date(supervisor.createdAt).toLocaleDateString()}</TableCell>
             <TableCell className="text-right">
-              <AlertDialog key={`delete-${supervisor.id}`}>
+              <AlertDialog key={`delete-${supervisor.supervisor_id}`}>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="icon">
                     <Trash2 className="w-4 h-4" />
