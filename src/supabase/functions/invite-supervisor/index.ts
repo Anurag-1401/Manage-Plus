@@ -89,12 +89,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use invite.user.id if available, otherwise fallback to null
-    const supervisorId = invite.user?.id || null;
-
     // 7️⃣ Insert into supervisor table
     const { error: insertError } = await adminClient.from("supervisor").insert({
-      supervisor_id: supervisorId,
       email: normalizedEmail,
       full_name : full_name,
       company_id : company_id,

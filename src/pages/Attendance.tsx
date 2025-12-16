@@ -40,7 +40,7 @@ const Attendance: React.FC = () => {
     let companyEmployees = data || [];
 
     if (role === 'SUPERVISOR') {
-      companyEmployees = companyEmployees.filter(e => e.supervisorId === user.id);
+      companyEmployees = companyEmployees.filter(e => e.supervisor_id === user.id);
     }
 
     setEmployees(companyEmployees);
