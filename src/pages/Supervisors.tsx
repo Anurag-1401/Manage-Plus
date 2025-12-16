@@ -28,6 +28,7 @@ const Supervisors: React.FC = () => {
     .from('supervisor')
     .select('*')
     .eq('company_id', company.company_id)
+    .in('status', ['ACTIVE', 'INVITED'])
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -77,11 +78,6 @@ const handleEdit = (supervisor: Supervisor) => {
     setDialogOpen(true);
   };
 
-const handleSave = async (supervisor: Partial<Supervisor>) => {
-  if (!company?.company_id || !user?.id) {
-    throw new Error('Company or user not found');
-  }
-
  const handleSave = async (supervisor: Partial<Supervisor>) => {
   if (!company?.company_id) {
     throw new Error("Company not found");
@@ -91,6 +87,30 @@ const handleSave = async (supervisor: Partial<Supervisor>) => {
   if (!session) {
     throw new Error("Not authenticated");
   }
+
+  
+const basePayload = {
+    full_name: supervisor.fullName,
+    email: supervisor.email,
+    phone: supervisor.phone,
+    aadhar: supervisor.aadhar,
+    pan: supervisor.pan,
+    address: supervisor.address,
+  };
+
+ if (editingSupervisor?.supervisor_id) {
+    const { error } = await supabase
+      .from('supervisor')
+      .update(basePayload)
+      .eq('supervisor_id', editingSupervisor.supervisor_id);
+    if (error) throw error;
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('Email already exists');
+      }
+      throw error;
+    }
+} else {
 
   const res = await fetch(
   "https://cbfkbkywqndothzrydyv.supabase.co/functions/v1/invite-supervisor",
@@ -112,49 +132,14 @@ const handleSave = async (supervisor: Partial<Supervisor>) => {
     }),
   }
 );
-
-  if (!res.ok) {
+if (!res.ok) {
     const err = await res.json();
     console.error("Invite error:", err);
     throw new Error(err.error || "Failed to invite supervisor");
-  // fields that can always be edited
-  const basePayload = {
-    full_name: supervisor.fullName,
-    email: supervisor.email,
-    phone: supervisor.phone,
-    aadhar: supervisor.aadhar,
-    pan: supervisor.pan,
-    address: supervisor.address,
-  };
+}
+}
 
-  // ---------- UPDATE ----------
-  if (editingSupervisor.supervisor_id) {
-    const { error } = await supabase
-      .from('supervisor')
-      .update(basePayload)
-      .eq('supervisor_id', editingSupervisor.supervisor_id);
-    if (error) throw error;
-  }
-
-  // ---------- INSERT ----------
-  else {
-    const { error } = await supabase
-      .from('supervisor')
-      .insert({
-        ...basePayload,
-        company_id: company.company_id, // only on insert
-        owner_id: user.id,              // only on insert
-      });
-
-    if (error) {
-      if (error.code === '23505') {
-        throw new Error('Email already exists');
-      }
-      throw error;
-    }
-  }
-
-  await loadSupervisors();
+await loadSupervisors();
   setDialogOpen(false);
 };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Supervisor, User } from '@/types';
+import { Supervisor} from '@/types';
 import {
   Table,
   TableBody,
@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface SupervisorTableProps {
-  supervisors: User[];
+  supervisors: Supervisor[];
   onEdit: (supervisor: Supervisor) => void;
   onDelete: (id: string) => void;
 }
