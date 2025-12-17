@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
-import { useAuth } from "@/hooks/useAuth";import Sidebar from './Sidebar';
+import { Outlet, Navigate ,useNavigate} from 'react-router-dom';
+import { useAuth } from "@/hooks/useAuth";
+import Sidebar from './Sidebar';
 import Header from './Header';
 import SplashScreen from '@/components/SplashScreen';
 import SubscriptionReminderDialog from '@/components/SubscriptionReminderDialog';
@@ -10,6 +11,8 @@ import { Button } from '@/components/ui/button';
 const DashboardLayout: React.FC = () => {
 const { user,role,loading,company } = useAuth(); 
  const [showSplash, setShowSplash] = useState(true);
+const navigate = useNavigate();
+
 
   useEffect(() => {
     if (!loading) {
@@ -27,30 +30,11 @@ if (!user) return <Navigate to="/login" replace />;
 
 
   // Check subscription status
-  const isSubscriptionExpired = company?.subscriptionStatus === 'expired' || 
-    (company?.subscriptionEndDate && new Date(company.subscriptionEndDate) < new Date());
+  const isSubscriptionExpired = company?.subscription_status === 'expired' || 
+    (company?.subscription_end_date && new Date(company.subscription_end_date) < new Date());
 
   if (isSubscriptionExpired) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-center space-y-6 max-w-md p-8">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-              <AlertCircle className="w-8 h-8 text-destructive" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Subscription Expired</h1>
-            <p className="text-muted-foreground">
-              Your subscription has expired. Please renew to continue using the application.
-            </p>
-          </div>
-          <Button size="lg" className="w-full">
-            Renew Subscription
-          </Button>
-        </div>
-      </div>
-    );
+    navigate("/subscriptionExpired")
   }
 
   return (

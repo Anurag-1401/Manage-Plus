@@ -21,6 +21,7 @@ interface AuthContextType {
   user: any;
   role: string | null;
   company: any;
+  subscription:any;
   loading: boolean;
   login: (email: string, password: string) => Promise<any>;
   signup: (email: string, password: string, data: SignupData) => Promise<void>;
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
+  const [subscription,setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -77,7 +79,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .single();
 
     setCompany(data);
+    return companyId;
   };
+
+  const fetchSubs = async(companyId:number) => {
+    console.log("Fetching Plan...");
+
+    const{data,error}= await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("company_id",companyId)
+    .order("created_at",{ascending:false})
+    .limit(1)
+    .maybeSingle();
+
+    if(error) {
+      console.log("Subs fetching error",error)
+      return;
+    }
+    
+    setSubscription(data);
+    console.log(data)
+    return companyId;
+
+  }
 
   const ensureOwnerAndCompany = async (user: any) => {
     console.log("🧩 ensureOwnerAndCompany");
@@ -145,7 +170,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     console.log("🚀 AUTH LISTENER INITIALIZED");
-
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("🔔 AUTH EVENT:", event);
@@ -158,9 +182,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return;
         }
         
-        fetchRole(session.user.id).then(fetchCompany);
+        const comp = fetchRole(session.user.id).then(fetchCompany).then(fetchSubs);
         setUser(session.user);
         setLoading(false);
+        if(!comp) await supabase.auth.signOut();
       }
     );
 
@@ -298,6 +323,14 @@ const signup = async (
 
   console.log("🏢 Company updated with owner_id:", userId);
 
+  const {data: subscription_data,error} = await supabase
+        .from('subscriptions')
+        .insert({
+          company_id: companyId,
+          owner_id: userId,
+          plan_name : 'Basic'
+        })
+    if(error) console.log("subs",error)
 }
     console.log("🎉 Signup complete for:", email);
 
@@ -323,7 +356,7 @@ const signup = async (
 
   return (
     <AuthContext.Provider
-      value={{ user, role, company, loading, login, signup, logout }}
+      value={{ user, role, company, subscription,loading, login, signup, logout }}
     >
       {children}
     </AuthContext.Provider>

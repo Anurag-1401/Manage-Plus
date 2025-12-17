@@ -13,6 +13,7 @@ import {
   LogOut,
   UserCircle,
   Shield,
+  IndianRupee,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ const Sidebar: React.FC = () => {
     { icon: ClipboardList, label: 'Manage Presence', path: '/attendance', roles: ['OWNER', 'SUPERVISOR'] },
     { icon: Calendar, label: 'Attendance History', path: '/attendance-history', roles: ['OWNER', 'SUPERVISOR'] },
     { icon: FileText, label: 'Reports', path: '/reports', roles: ['OWNER'] },
+    {icon: IndianRupee, label: 'Manage Plan', path: '/subscriptionPage', roles: ['OWNER']},
     { icon: Settings, label: 'Settings', path: '/settings', roles: ['OWNER', 'SUPERVISOR'] },
     { icon: Shield, label: 'Admin Panel', path: '/admin', roles: ['ADMIN'] },
   ];
