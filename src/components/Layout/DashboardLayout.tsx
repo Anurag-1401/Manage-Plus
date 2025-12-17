@@ -9,7 +9,7 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const DashboardLayout: React.FC = () => {
-const { user,role,loading,company } = useAuth(); 
+const { user,role,loading,company ,subscription} = useAuth(); 
  const [showSplash, setShowSplash] = useState(true);
 const navigate = useNavigate();
 
@@ -30,8 +30,8 @@ if (!user) return <Navigate to="/login" replace />;
 
 
   // Check subscription status
-  const isSubscriptionExpired = company?.subscription_status === 'expired' || 
-    (company?.subscription_end_date && new Date(company.subscription_end_date) < new Date());
+  const isSubscriptionExpired = subscription?.status === 'expired' || 
+    (subscription?.expire_date && new Date(subscription.expire_date) < new Date());
 
   if (isSubscriptionExpired) {
     navigate("/subscriptionExpired")
