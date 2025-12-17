@@ -17,7 +17,7 @@ const [weeklyAttendance, setWeeklyAttendance] = useState<
   { day: string; present: number; absent: number }[]
 >([]);
 
-  const { user ,role,company } = useAuth();
+  const { user ,role,company ,subscription} = useAuth();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     presentToday: 0,
@@ -27,8 +27,8 @@ const [weeklyAttendance, setWeeklyAttendance] = useState<
   const [daysRemaining, setDaysRemaining] = useState<number>(0);
 
   useEffect(() => {
-    if (company?.subscriptionEndDate) {
-      const endDate = new Date(company.subscriptionEndDate);
+    if (subscription?.expire_date) {
+      const endDate = new Date(subscription?.expire_date);
       const today = new Date();
       const diffTime = endDate.getTime() - today.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
