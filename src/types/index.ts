@@ -43,6 +43,14 @@ export interface Supervisor {
   createdAt: string;
 }
 
+export interface subscription_data {
+  company_id: String;
+  owner_id :String;
+  plan_name: String;
+  expire_date? : Date;
+  status? : 'active'|'expire'; 
+}
+
 
 export interface Employee {
   employee_id: string;

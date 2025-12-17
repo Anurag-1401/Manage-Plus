@@ -200,15 +200,6 @@ const [weeklyAttendance, setWeeklyAttendance] = useState<
     }] : []),
   ];
 
-  const weeklyData = [
-    { day: 'Mon', present: 45, absent: 5 },
-    { day: 'Tue', present: 48, absent: 2 },
-    { day: 'Wed', present: 47, absent: 3 },
-    { day: 'Thu', present: 46, absent: 4 },
-    { day: 'Fri', present: 44, absent: 6 },
-    { day: 'Sat', present: 50, absent: 0 },
-  ];
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
