@@ -5,10 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Supervisors from './Supervisors';
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
-
+  const { user ,company , owner } = useAuth();
   return (
     <div className="space-y-6">
       <div>
@@ -30,7 +30,7 @@ const Settings: React.FC = () => {
     <Label htmlFor="name">Full Name</Label>
     <Input
       id="name"
-      defaultValue={user?.user_metadata?.fullName ?? ""}
+      defaultValue={owner?.full_name ?? ""}
     />
   </div>
 
@@ -49,7 +49,7 @@ const Settings: React.FC = () => {
     <Label htmlFor="companyName">Company Name</Label>
     <Input
       id="companyName"
-      defaultValue={user?.user_metadata?.companyName ?? ""}
+      defaultValue={company?.company_name ?? ""}
     />
   </div>
 
@@ -66,14 +66,14 @@ const Settings: React.FC = () => {
     <Label htmlFor="address">Company Address</Label>
     <Input
       id="address"
-      defaultValue={user?.user_metadata?.address ?? ""}
+      defaultValue={company?.address?? ""}
     />
   </div>
   <div className="space-y-2">
     <Label htmlFor="phone">Phone Number</Label>
     <Input
       id="phone"
-      defaultValue={user?.user_metadata?.phone ?? ""}
+      defaultValue={owner?.phone ?? ""}
       disabled
     />
   </div>

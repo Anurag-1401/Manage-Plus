@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import Supervisors from "@/pages/Supervisors";
 
 
 interface SignupData {
@@ -20,6 +21,8 @@ interface SignupData {
 interface AuthContextType {
   user: any;
   role: string | null;
+  supervisor : any;
+  owner : any;
   company: any;
   subscription:any;
   loading: boolean;
@@ -34,6 +37,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
+  const [owner,setOwner] = useState<any>(null);
+  const [supervisor , setSupervisor] =useState<any>(null);
   const [subscription,setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,23 +50,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: owner } = await supabase
       .from("owner")
-      .select("company_id")
+      .select("*")
       .eq("owner_id", uid)
       .maybeSingle();
 
     if (owner) {
       setRole("OWNER");
+      setOwner(owner)
       return owner.company_id;
     }
 
     const { data: supervisor } = await supabase
       .from("supervisor")
-      .select("company_id")
+      .select("*")
       .eq("supervisor_id", uid)
       .maybeSingle();
 
     if (supervisor) {
       setRole("SUPERVISOR");
+      setSupervisor(supervisor)
       return supervisor.company_id;
     }
 
@@ -356,7 +363,7 @@ const signup = async (
 
   return (
     <AuthContext.Provider
-      value={{ user, role, company, subscription,loading, login, signup, logout }}
+      value={{ user, role, company, owner,subscription,loading, login, signup, logout ,supervisor}}
     >
       {children}
     </AuthContext.Provider>
