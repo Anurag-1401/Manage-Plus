@@ -44,7 +44,6 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/employees" element={<Employees />} />
             <Route path="/supervisors" element={<Supervisors />} />
-            <Route path="/setup-account" element={<SetupAccount />} />
             <Route path="/profile" element={<SupervisorProfile />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/attendance-history" element={<AttendanceHistory />} />
@@ -54,6 +53,7 @@ const App = () => (
           </Route>
           <Route path="*" element={<NotFound />} />
             <Route path="/subscriptionPage" element={<SubscriptionPage />} />
+            <Route path="/setup-account" element={<SetupAccount />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
